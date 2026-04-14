@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "TruVideo Recorder",
+  "version": "0.1.0",
+  "description": "Attach TruVideo Recorder videos to Jira issues and sync metadata.",
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "TruVideo Recorder"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "options_page": "options.html",
+  "permissions": ["storage", "identity"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*/browse/*",
+        "*://*/jira/software/c/projects/*/boards/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["index.html", "assets/*", "assets/chunks/*", "vite.svg"],
+      "matches": ["*://*/*"]
+    }
+  ]
+}
