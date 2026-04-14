@@ -82,7 +82,7 @@ jobs:
       - name: Package extension as ZIP
         run: |
           VERSION=$(python3 -c "import json; print(json.load(open('dist/manifest.json'))['version'])")
-          ZIP_NAME="extension-v${VERSION}.zip"
+          ZIP_NAME="truvideo-jira-extension-v${VERSION}.zip"
           echo "Packaging version $VERSION from dist/ → $ZIP_NAME"
 
           cd dist
