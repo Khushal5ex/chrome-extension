@@ -78,21 +78,13 @@ jobs:
           print(f"manifest.json OK — name={m['name']!r}, version={m['version']!r}, manifest_version={m['manifest_version']}")
           EOF
 
-      # 7. Package dist/ as ZIP
-      - name: Package extension as ZIP
-        run: |
-          VERSION=$(python3 -c "import json; print(json.load(open('dist/manifest.json'))['version'])")
-          ZIP_NAME="truvideo-jira-extension-v${VERSION}.zip"
-          echo "Packaging version $VERSION from dist/ → $ZIP_NAME"
-
-          cd dist
-          zip -r "../$ZIP_NAME" . --exclude "*.DS_Store"
-          cd -
-
-          echo "ZIP contents:"
-          unzip -l "$ZIP_NAME"
-
-          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+      # 7. upload extension folder
+      - name: upload extension folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: truvideo-jira-extension-v${{ github.run_number }}
+          path: dist/
+      
 
       # 8. Upload ZIP as downloadable artifact
       - name: Upload extension ZIP
