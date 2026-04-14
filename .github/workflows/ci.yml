@@ -83,5 +83,5 @@ jobs:
       - name: upload extension folder
         uses: actions/upload-artifact@v4
         with:
-          name: truvideo-jira-extension-v${VERSION}
+          name: truvideo-jira-extension-v${{VERSION}}
           path: dist/
