@@ -78,12 +78,10 @@ jobs:
           print(f"manifest.json OK — name={m['name']!r}, version={m['version']!r}, manifest_version={m['manifest_version']}")
           EOF
 
-      # 7. upload extension folder
+  
+      # 7. Upload ZIP as downloadable artifact
       - name: upload extension folder
         uses: actions/upload-artifact@v4
         with:
-          name: truvideo-jira-extension-v${{ env.VERSION }}
+          name: truvideo-jira-extension-v${VERSION}
           path: dist/
-      
-
-      
