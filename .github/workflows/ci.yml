@@ -77,11 +77,15 @@ jobs:
 
           print(f"manifest.json OK — name={m['name']!r}, version={m['version']!r}, manifest_version={m['manifest_version']}")
           EOF
+      # 7. Extract version from manifest
+      - name: Extract version from manifest
+        run: |
+          VERSION=$(python3 -c "import json; print(json.load(open('dist/manifest.json'))['version'])")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-  
-      # 7. Upload ZIP as downloadable artifact
+      # 8. Upload ZIP as downloadable artifact
       - name: upload extension folder
         uses: actions/upload-artifact@v4
         with:
-          name: truvideo-jira-extension-v${{VERSION}}
+          name: truvideo-jira-extension-v$v${{ env.VERSION }}
           path: dist/
