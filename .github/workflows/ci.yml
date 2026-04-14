@@ -82,7 +82,7 @@ jobs:
       - name: upload extension folder
         uses: actions/upload-artifact@v4
         with:
-          name: truvideo-jira-extension-v${{ github.run_number }}
+          name: truvideo-jira-extension-v${{ env.VERSION }}
           path: dist/
       
 
