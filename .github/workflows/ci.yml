@@ -89,3 +89,4 @@ jobs:
         with:
           name: truvideo-jira-extension-v${{ env.VERSION }}
           path: dist/
+
