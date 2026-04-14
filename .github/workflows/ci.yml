@@ -3,7 +3,6 @@ name: CI
 on:
   push:
     branches: ["**"]
-  
 
 jobs:
   build:
@@ -15,14 +14,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Set up Node.js (only needed if you have npm scripts/linting)
+      # 2. Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
 
-      # 3. Install dependencies (skip if you have no package.json)
+      # 3. Install dependencies (skip if no package.json)
       - name: Install dependencies
         run: |
           if [ -f package.json ]; then
@@ -31,7 +30,7 @@ jobs:
             echo "No package.json found, skipping install"
           fi
 
-      # 4. Lint (ESLint — skip if not configured)
+      # 4. Lint (skip if ESLint not configured)
       - name: Lint
         run: |
           if [ -f .eslintrc* ] || grep -q '"eslint"' package.json 2>/dev/null; then
@@ -49,40 +48,24 @@ jobs:
             echo "No test script found, skipping tests"
           fi
 
-      # 6. Auto-detect manifest.json location
-      - name: Locate manifest.json
+      # 6. Validate dist/manifest.json
+      - name: Validate manifest.json
         run: |
-          MANIFEST_PATH=$(find . \
-            -name "manifest.json" \
-            -not -path "*/node_modules/*" \
-            -not -path "*/.git/*" \
-            | head -n 1)
-
-          if [ -z "$MANIFEST_PATH" ]; then
-            echo "ERROR: manifest.json not found anywhere in the repo"
+          if [ ! -f "dist/manifest.json" ]; then
+            echo "ERROR: dist/manifest.json not found"
             exit 1
           fi
 
-          MANIFEST_DIR=$(dirname "$MANIFEST_PATH")
-          echo "Found manifest.json at: $MANIFEST_PATH"
-          echo "Extension root: $MANIFEST_DIR"
-          echo "MANIFEST_DIR=$MANIFEST_DIR" >> $GITHUB_ENV
-
-      # 7. Validate manifest.json has required fields
-      - name: Validate manifest.json
-        run: |
-          MANIFEST_FILE="$MANIFEST_DIR/manifest.json"
-
-          # Check it is valid JSON
-          python3 -c "import json; json.load(open('$MANIFEST_FILE'))" \
+          # Check valid JSON
+          python3 -c "import json; json.load(open('dist/manifest.json'))" \
             && echo "manifest.json is valid JSON" \
             || (echo "ERROR: manifest.json is not valid JSON" && exit 1)
 
-          # Check required fields exist
-          python3 - <<EOF
+          # Check required fields
+          python3 - <<'EOF'
           import json, sys
 
-          with open("$MANIFEST_FILE") as f:
+          with open("dist/manifest.json") as f:
               m = json.load(f)
 
           required = ["name", "version", "manifest_version"]
@@ -95,37 +78,23 @@ jobs:
           print(f"manifest.json OK — name={m['name']!r}, version={m['version']!r}, manifest_version={m['manifest_version']}")
           EOF
 
-      # 8. Package extension as ZIP (only extension folder, excludes dev files)
+      # 7. Package dist/ as ZIP
       - name: Package extension as ZIP
         run: |
-          MANIFEST_FILE="$MANIFEST_DIR/manifest.json"
-          VERSION=$(python3 -c "import json; print(json.load(open('$MANIFEST_FILE'))['version'])")
+          VERSION=$(python3 -c "import json; print(json.load(open('dist/manifest.json'))['version'])")
           ZIP_NAME="extension-v${VERSION}.zip"
-          echo "Packaging version $VERSION from '$MANIFEST_DIR' → $ZIP_NAME"
+          echo "Packaging version $VERSION from dist/ → $ZIP_NAME"
 
-          cd "$MANIFEST_DIR"
-          zip -r "../$ZIP_NAME" . \
-            --exclude "*.git*" \
-            --exclude "node_modules/*" \
-            --exclude "*.zip" \
-            --exclude "tests/*" \
-            --exclude "test/*" \
-            --exclude "__tests__/*" \
-            --exclude "*.md" \
-            --exclude ".eslintrc*" \
-            --exclude ".prettierrc*" \
-            --exclude "*.config.js" \
-            --exclude "package-lock.json" \
-            --exclude ".github/*" \
-            --exclude "*.DS_Store"
-
+          cd dist
+          zip -r "../$ZIP_NAME" . --exclude "*.DS_Store"
           cd -
+
           echo "ZIP contents:"
           unzip -l "$ZIP_NAME"
 
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
-      # 9. Upload ZIP as a build artifact (downloadable from the Actions run page)
+      # 8. Upload ZIP as downloadable artifact
       - name: Upload extension ZIP
         uses: actions/upload-artifact@v4
         with:
